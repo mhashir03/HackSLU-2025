@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LanguageSelector from '../../components/feature/speech/LanguageSelector';
-import { Language, SUPPORTED_LANGUAGES, getDefaultLanguage } from '../../lib/constants/languages';
+import { recognizeSpeech } from '../../api/speechApi'
 
 // @ts-ignore - ignore navigation type for now
 export default function SpeechScreen({ navigation }) {
   const { theme } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [clarifiedText, setClarifiedText] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(true);
@@ -43,6 +43,10 @@ export default function SpeechScreen({ navigation }) {
 
   async function startRecording() {
     try {
+      // Reset previous results
+      setTranscription("");
+      setClarifiedText("");
+      
       // Set up recording
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
@@ -56,30 +60,9 @@ export default function SpeechScreen({ navigation }) {
       setRecording(recording);
       setIsRecording(true);
       
-      // Simulate transcription after a delay (in a real app, this would be actual speech recognition)
-      setTimeout(() => {
-        // Simulate different responses based on selected language
-        if (selectedLanguage.code.startsWith('en')) {
-          setTranscription("I need to take my medication soon.");
-        } else if (selectedLanguage.code.startsWith('es')) {
-          setTranscription("Necesito tomar mi medicación pronto.");
-        } else if (selectedLanguage.code.startsWith('fr')) {
-          setTranscription("Je dois prendre mes médicaments bientôt.");
-        } else if (selectedLanguage.code.startsWith('de')) {
-          setTranscription("Ich muss bald meine Medikamente nehmen.");
-        } else {
-          setTranscription(`[Sample text in ${selectedLanguage.name}]`);
-        }
-        
-        // Simulate AI clarification
-        setTimeout(() => {
-          // For demo purposes, clarified text is the same as transcription
-          setClarifiedText(transcription);
-        }, 1000);
-      }, 2000);
-      
     } catch (err) {
       console.error('Failed to start recording', err);
+      Alert.alert('Error', 'Failed to start recording');
     }
   }
 
@@ -87,12 +70,29 @@ export default function SpeechScreen({ navigation }) {
     if (!recording) return;
     
     setIsRecording(false);
-    await recording.stopAndUnloadAsync();
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-    });
+    setIsProcessing(true);
     
-    setRecording(null);
+    try {
+      await recording.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+      });
+      
+      // Send to backend for processing
+      const result = await recognizeSpeech(recording);
+      setTranscription(result.text);
+      
+      // In a real app, you might want to do some post-processing
+      // or enhancement of the recognized text
+      setClarifiedText(result.text);
+      
+    } catch (err) {
+      console.error('Error processing speech:', err);
+      Alert.alert('Error', 'Failed to process speech recording');
+    } finally {
+      setIsProcessing(false);
+      setRecording(null);
+    }
   }
 
   const toggleRecording = () => {
@@ -228,38 +228,42 @@ export default function SpeechScreen({ navigation }) {
       fontSize: 16,
       color: theme.textColor,
     },
+    loadingContainer: {
+      marginTop: 20,
+      alignItems: 'center',
+    },
   });
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.content} contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.controlsContainer}>
-          <View style={styles.languageSelectorContainer}>
-            <Text style={styles.languageSelectorLabel}>Speech Language</Text>
-            <LanguageSelector
-              selectedLanguage={selectedLanguage}
-              onSelectLanguage={handleLanguageSelect}
-              style={styles.languageSelector}
+        <View style={styles.micButtonContainer}>
+          <TouchableOpacity
+            style={styles.micButton}
+            onPress={toggleRecording}
+            activeOpacity={0.8}
+            disabled={isProcessing}
+          >
+            <Feather 
+              name={isRecording ? "mic-off" : "mic"} 
+              size={40} 
+              color="white" 
             />
-          </View>
-
-          <View style={styles.micButtonContainer}>
-            <TouchableOpacity
-              style={styles.micButton}
-              onPress={toggleRecording}
-              activeOpacity={0.8}
-            >
-              <Feather 
-                name={isRecording ? "mic-off" : "mic"} 
-                size={46} 
-                color="white" 
-              />
-            </TouchableOpacity>
-            <Text style={styles.statusText}>
-              {isRecording ? "Listening..." : "Tap the microphone to start speaking"}
-            </Text>
-          </View>
+          </TouchableOpacity>
+          <Text style={styles.statusText}>
+            {isRecording 
+              ? "Listening..." 
+              : isProcessing 
+                ? "Processing..." 
+                : "Tap the microphone to start speaking"}
+          </Text>
         </View>
+
+        {isProcessing && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.accentColor} />
+          </View>
+        )}
 
         {transcription ? (
           <View style={styles.card}>
