@@ -1,4 +1,4 @@
-# VoiceClarity
+# Ozzy
 
 ## Voice Assistance for Enhanced Communication
 
