@@ -2,11 +2,11 @@
 
 ## Voice Assistance for Enhanced Communication
 
-VoiceClarity is a mobile application designed to help users with speech difficulties communicate more effectively. The app uses advanced speech recognition and AI technology to clarify spoken words, making verbal communication more accessible for everyone.
+Ozzy is a mobile application designed to help users with speech difficulties communicate more effectively. The app uses advanced speech recognition and AI technology to clarify spoken words, making verbal communication more accessible for everyone.
 
-![VoiceClarity App](assets/app-preview.png)
+![Ozzy App](assets/app-preview.png)
 
-## 🌟 Why VoiceClarity?
+## 🌟 Why Ozzy?
 
 ### The Problem
 
@@ -19,7 +19,7 @@ Many individuals face communication challenges due to speech impediments, neurol
 
 ### Our Solution
 
-VoiceClarity serves as a real-time communication assistant that:
+Ozzy serves as a real-time communication assistant that:
 
 1. Captures speech through advanced audio recording
 2. Processes and clarifies the spoken content
@@ -85,7 +85,7 @@ By bridging the gap between spoken words and clear communication, VoiceClarity e
 
 ## 🤝 Contributing
 
-We welcome contributions to improve VoiceClarity! Whether it's bug fixes, feature enhancements, or documentation improvements, your help is appreciated.
+We welcome contributions to improve Ozzy! Whether it's bug fixes, feature enhancements, or documentation improvements, your help is appreciated.
 
 ## 📄 License
 
@@ -97,4 +97,4 @@ Developed during HackSLU 2025 by a passionate team dedicated to making communica
 
 ---
 
-*VoiceClarity - Empowering clear communication for all.*
+*Ozzy - Empowering clear communication for all.*
