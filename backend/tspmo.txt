@@ -24,7 +24,6 @@ Author: Nilesh Gupta
 Date: 03-22-2025
 """
 
-
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
