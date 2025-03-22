@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { recognizeSpeech } from '../../api/speechApi'
 
 // @ts-ignore - ignore navigation type for now
 export default function SpeechScreen({ navigation }) {
   const { theme } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [clarifiedText, setClarifiedText] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(true);
@@ -40,6 +42,10 @@ export default function SpeechScreen({ navigation }) {
 
   async function startRecording() {
     try {
+      // Reset previous results
+      setTranscription("");
+      setClarifiedText("");
+      
       // Set up recording
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
@@ -53,18 +59,9 @@ export default function SpeechScreen({ navigation }) {
       setRecording(recording);
       setIsRecording(true);
       
-      // Simulate transcription after a delay (in a real app, this would be actual speech recognition)
-      setTimeout(() => {
-        setTranscription("I need to take my medication soon.");
-        
-        // Simulate AI clarification
-        setTimeout(() => {
-          setClarifiedText("I need to take my medication soon.");
-        }, 1000);
-      }, 2000);
-      
     } catch (err) {
       console.error('Failed to start recording', err);
+      Alert.alert('Error', 'Failed to start recording');
     }
   }
 
@@ -72,12 +69,29 @@ export default function SpeechScreen({ navigation }) {
     if (!recording) return;
     
     setIsRecording(false);
-    await recording.stopAndUnloadAsync();
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-    });
+    setIsProcessing(true);
     
-    setRecording(null);
+    try {
+      await recording.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+      });
+      
+      // Send to backend for processing
+      const result = await recognizeSpeech(recording);
+      setTranscription(result.text);
+      
+      // In a real app, you might want to do some post-processing
+      // or enhancement of the recognized text
+      setClarifiedText(result.text);
+      
+    } catch (err) {
+      console.error('Error processing speech:', err);
+      Alert.alert('Error', 'Failed to process speech recording');
+    } finally {
+      setIsProcessing(false);
+      setRecording(null);
+    }
   }
 
   const toggleRecording = () => {
@@ -179,6 +193,10 @@ export default function SpeechScreen({ navigation }) {
       fontSize: 16,
       color: theme.textColor,
     },
+    loadingContainer: {
+      marginTop: 20,
+      alignItems: 'center',
+    },
   });
 
   return (
@@ -189,6 +207,7 @@ export default function SpeechScreen({ navigation }) {
             style={styles.micButton}
             onPress={toggleRecording}
             activeOpacity={0.8}
+            disabled={isProcessing}
           >
             <Feather 
               name={isRecording ? "mic-off" : "mic"} 
@@ -197,9 +216,19 @@ export default function SpeechScreen({ navigation }) {
             />
           </TouchableOpacity>
           <Text style={styles.statusText}>
-            {isRecording ? "Listening..." : "Tap the microphone to start speaking"}
+            {isRecording 
+              ? "Listening..." 
+              : isProcessing 
+                ? "Processing..." 
+                : "Tap the microphone to start speaking"}
           </Text>
         </View>
+
+        {isProcessing && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.accentColor} />
+          </View>
+        )}
 
         {transcription ? (
           <View style={styles.card}>
