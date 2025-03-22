@@ -16,7 +16,10 @@ export default function SpeechScreen({ navigation }) {
   const [clarifiedText, setClarifiedText] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(true);
   const [recording, setRecording] = useState(null);
-  const [selectedLanguage, setSelectedLanguage] = useState(getDefaultLanguage());
+  const [selectedLanguage, setSelectedLanguage] = useState({ 
+    code: 'en-US',  // Default to English
+    name: 'English'
+  });
 
   useEffect(() => {
     // Request permissions
