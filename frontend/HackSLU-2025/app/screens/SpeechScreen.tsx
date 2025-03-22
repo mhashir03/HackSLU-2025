@@ -7,6 +7,12 @@ import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { recognizeSpeech } from '../../api/speechApi'
 
+// Define the Language interface
+interface Language {
+  code: string;
+  name: string;
+}
+
 // @ts-ignore - ignore navigation type for now
 export default function SpeechScreen({ navigation }) {
   const { theme } = useTheme();

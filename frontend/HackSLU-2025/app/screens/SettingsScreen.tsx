@@ -79,11 +79,6 @@ const SettingsScreen = () => {
           </TouchableOpacity>
           {renderSettingItem('volume-2', 'Voice Settings', false, false)}
         </View>
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.secondaryTextColor }]}>Appearance</Text>
-          {renderSettingItem('moon', 'Dark Mode', true, isDark, toggleTheme)}
-        </View>
         
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.secondaryTextColor }]}>General</Text>
