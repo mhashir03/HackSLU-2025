@@ -7,9 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 // Screens
 import HomeScreen from '../screens/HomeScreen';
 import SpeechScreen from '../screens/SpeechScreen';
-import HistoryScreen from '../screens/HistoryScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -30,7 +28,7 @@ const SpeechStack = () => {
         name="SpeechMain" 
         component={SpeechScreen} 
         options={{ 
-          title: 'Speech Assistant',
+          title: 'Voice Assistant',
           headerBackTitleVisible: false,
         }}
       />
@@ -38,28 +36,11 @@ const SpeechStack = () => {
   );
 };
 
-const HistoryStack = () => {
+const SettingsStack = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen 
-        name="HistoryMain" 
-        component={HistoryScreen} 
-        options={{ title: 'Conversation History' }}
-      />
-    </Stack.Navigator>
-  );
-};
-
-const ProfileStack = () => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen 
-        name="ProfileMain" 
-        component={ProfileScreen} 
-        options={{ title: 'Profile' }}
-      />
-      <Stack.Screen 
-        name="Settings" 
+        name="SettingsMain" 
         component={SettingsScreen} 
         options={{ title: 'Settings' }}
       />
@@ -80,10 +61,8 @@ export default function AppNavigator() {
             iconName = 'home';
           } else if (route.name === 'Speech') {
             iconName = 'mic';
-          } else if (route.name === 'History') {
-            iconName = 'clock';
-          } else if (route.name === 'Profile') {
-            iconName = 'user';
+          } else if (route.name === 'Settings') {
+            iconName = 'settings';
           }
 
           return <Feather name={iconName} size={size} color={color} />;
@@ -103,8 +82,7 @@ export default function AppNavigator() {
     >
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Speech" component={SpeechStack} />
-      <Tab.Screen name="History" component={HistoryStack} />
-      <Tab.Screen name="Profile" component={ProfileStack} />
+      <Tab.Screen name="Settings" component={SettingsStack} />
     </Tab.Navigator>
   );
 }

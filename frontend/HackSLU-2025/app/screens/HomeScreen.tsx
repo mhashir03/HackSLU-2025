@@ -105,7 +105,7 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.header}>
-          <Text style={styles.title}>VoiceClarity</Text>
+          <Text style={styles.title}>Ozzy</Text>
           <Text style={styles.subtitle}>AI-powered speech assistant</Text>
         </View>
 
@@ -121,17 +121,8 @@ export default function HomeScreen({ navigation }) {
 
           <View style={styles.secondaryButtonsRow}>
             <TouchableOpacity 
-              style={styles.secondaryButton}
-              onPress={() => navigation.navigate('History')}
-              activeOpacity={0.8}
-            >
-              <Feather name="clock" size={24} color={theme.textColor} />
-              <Text style={styles.secondaryButtonText}>History</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.secondaryButton}
-              onPress={() => navigation.navigate('Profile', { screen: 'Settings' })}
+              style={[styles.secondaryButton, { flex: 1 }]}
+              onPress={() => navigation.navigate('Settings')}
               activeOpacity={0.8}
             >
               <Feather name="settings" size={24} color={theme.textColor} />
