@@ -6,7 +6,43 @@ import whisper
 import torch
 from transformers import pipeline, AutoModelForSeq2SeqLM, AutoTokenizer
 import logging
+"""
+backend/
+    ├── app.py                   # Main Flask application entry point
+    ├── config.py                # Configuration settings
+    ├── services/
+    │   ├── __init__.py
+    │   ├── whisper_service.py   # Speech recognition functionality
+    │   └── translation_service.py # Translation functionality
+    └── api/
+            ├── __init__.py
+            ├── speech_routes.py     # Speech recognition endpoints
+            ├── translation_routes.py # Translation endpoints
+            └── combined_routes.py   # Combined endpoints
 
+Implementation steps:
+
+1. Create the directory structure:
+    mkdir -p backend/services backend/api
+
+2. Create files:
+    touch backend/app.py backend/config.py
+    touch backend/services/__init__.py backend/services/whisper_service.py backend/services/translation_service.py
+    touch backend/api/__init__.py backend/api/speech_routes.py backend/api/translation_routes.py backend/api/combined_routes.py
+
+3. Split the code:
+    - Move configuration to config.py
+    - Move Whisper functionality to whisper_service.py
+    - Move translation functionality to translation_service.py 
+    - Move routes to their respective files in api/
+    - Update app.py to import and use these modules
+
+4. Install dependencies:
+    pip install flask flask-cors torch whisper transformers
+
+5. Run the application:
+    python backend/app.py
+"""
 """
 Speech-to-Text Application Backend for Users with Speech Impediments
 
