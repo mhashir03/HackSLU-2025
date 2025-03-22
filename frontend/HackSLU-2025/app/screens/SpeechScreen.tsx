@@ -16,6 +16,7 @@ export default function SpeechScreen({ navigation }) {
   const [clarifiedText, setClarifiedText] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(true);
   const [recording, setRecording] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState(getDefaultLanguage());
 
   useEffect(() => {
     // Request permissions
@@ -33,12 +34,12 @@ export default function SpeechScreen({ navigation }) {
     // Auto-speak clarified text if enabled
     if (clarifiedText && autoSpeak) {
       Speech.speak(clarifiedText, {
-        language: 'en',
+        language: selectedLanguage.code,
         pitch: 1.0,
         rate: 0.9,
       });
     }
-  }, [clarifiedText, autoSpeak]);
+  }, [clarifiedText, autoSpeak, selectedLanguage]);
 
   async function startRecording() {
     try {
@@ -105,7 +106,7 @@ export default function SpeechScreen({ navigation }) {
   // @ts-ignore - ignore text type for now
   const speakText = (text) => {
     Speech.speak(text, {
-      language: 'en',
+      language: selectedLanguage.code,
       pitch: 1.0,
       rate: 0.9,
     });
@@ -115,6 +116,17 @@ export default function SpeechScreen({ navigation }) {
   const copyToClipboard = (text) => {
     // In a real app, you would use Clipboard.setString(text)
     alert('Text copied to clipboard');
+  };
+
+  const handleLanguageSelect = (language: Language) => {
+    setSelectedLanguage(language);
+    
+    // Reset transcriptions when language changes
+    if (isRecording) {
+      stopRecording();
+    }
+    setTranscription("");
+    setClarifiedText("");
   };
 
   const styles = StyleSheet.create({
@@ -129,21 +141,44 @@ export default function SpeechScreen({ navigation }) {
       width: '100%',
       alignSelf: 'center',
     },
+    controlsContainer: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginVertical: 30,
+      width: '100%',
+    },
+    languageSelectorContainer: {
+      width: '100%',
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginBottom: 30,
+    },
+    languageSelectorLabel: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.textColor,
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    languageSelector: {
+      minWidth: 150,
+    },
     micButtonContainer: {
       alignItems: 'center',
-      marginVertical: 32,
+      width: '100%',
     },
     micButton: {
-      width: 96,
-      height: 96,
-      borderRadius: 48,
+      width: 110,
+      height: 110,
+      borderRadius: 55,
       backgroundColor: isRecording ? '#FF4D4F' : theme.accentColor,
       justifyContent: 'center',
       alignItems: 'center',
+      marginBottom: 10,
     },
     statusText: {
       textAlign: 'center',
-      marginTop: 16,
+      marginTop: 12,
       color: theme.secondaryTextColor,
       fontSize: 16,
     },
@@ -186,7 +221,7 @@ export default function SpeechScreen({ navigation }) {
       justifyContent: 'space-between',
       paddingVertical: 16,
       borderTopWidth: 1,
-      borderTopColor: theme.borderColor,
+      borderTopColor: theme.divider,
       marginTop: 'auto',
     },
     switchLabel: {
