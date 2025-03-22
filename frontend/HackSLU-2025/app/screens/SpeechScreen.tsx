@@ -5,6 +5,8 @@ import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LanguageSelector from '../../components/feature/speech/LanguageSelector';
+import { Language, SUPPORTED_LANGUAGES, getDefaultLanguage } from '../../lib/constants/languages';
 
 // @ts-ignore - ignore navigation type for now
 export default function SpeechScreen({ navigation }) {
@@ -14,6 +16,7 @@ export default function SpeechScreen({ navigation }) {
   const [clarifiedText, setClarifiedText] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(true);
   const [recording, setRecording] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState(getDefaultLanguage());
 
   useEffect(() => {
     // Request permissions
@@ -31,12 +34,12 @@ export default function SpeechScreen({ navigation }) {
     // Auto-speak clarified text if enabled
     if (clarifiedText && autoSpeak) {
       Speech.speak(clarifiedText, {
-        language: 'en',
+        language: selectedLanguage.code,
         pitch: 1.0,
         rate: 0.9,
       });
     }
-  }, [clarifiedText, autoSpeak]);
+  }, [clarifiedText, autoSpeak, selectedLanguage]);
 
   async function startRecording() {
     try {
@@ -55,11 +58,23 @@ export default function SpeechScreen({ navigation }) {
       
       // Simulate transcription after a delay (in a real app, this would be actual speech recognition)
       setTimeout(() => {
-        setTranscription("I need to take my medication soon.");
+        // Simulate different responses based on selected language
+        if (selectedLanguage.code.startsWith('en')) {
+          setTranscription("I need to take my medication soon.");
+        } else if (selectedLanguage.code.startsWith('es')) {
+          setTranscription("Necesito tomar mi medicación pronto.");
+        } else if (selectedLanguage.code.startsWith('fr')) {
+          setTranscription("Je dois prendre mes médicaments bientôt.");
+        } else if (selectedLanguage.code.startsWith('de')) {
+          setTranscription("Ich muss bald meine Medikamente nehmen.");
+        } else {
+          setTranscription(`[Sample text in ${selectedLanguage.name}]`);
+        }
         
         // Simulate AI clarification
         setTimeout(() => {
-          setClarifiedText("I need to take my medication soon.");
+          // For demo purposes, clarified text is the same as transcription
+          setClarifiedText(transcription);
         }, 1000);
       }, 2000);
       
@@ -91,7 +106,7 @@ export default function SpeechScreen({ navigation }) {
   // @ts-ignore - ignore text type for now
   const speakText = (text) => {
     Speech.speak(text, {
-      language: 'en',
+      language: selectedLanguage.code,
       pitch: 1.0,
       rate: 0.9,
     });
@@ -101,6 +116,17 @@ export default function SpeechScreen({ navigation }) {
   const copyToClipboard = (text) => {
     // In a real app, you would use Clipboard.setString(text)
     alert('Text copied to clipboard');
+  };
+
+  const handleLanguageSelect = (language: Language) => {
+    setSelectedLanguage(language);
+    
+    // Reset transcriptions when language changes
+    if (isRecording) {
+      stopRecording();
+    }
+    setTranscription("");
+    setClarifiedText("");
   };
 
   const styles = StyleSheet.create({
@@ -115,21 +141,44 @@ export default function SpeechScreen({ navigation }) {
       width: '100%',
       alignSelf: 'center',
     },
+    controlsContainer: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginVertical: 30,
+      width: '100%',
+    },
+    languageSelectorContainer: {
+      width: '100%',
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginBottom: 30,
+    },
+    languageSelectorLabel: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.textColor,
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    languageSelector: {
+      minWidth: 150,
+    },
     micButtonContainer: {
       alignItems: 'center',
-      marginVertical: 32,
+      width: '100%',
     },
     micButton: {
-      width: 96,
-      height: 96,
-      borderRadius: 48,
+      width: 110,
+      height: 110,
+      borderRadius: 55,
       backgroundColor: isRecording ? '#FF4D4F' : theme.accentColor,
       justifyContent: 'center',
       alignItems: 'center',
+      marginBottom: 10,
     },
     statusText: {
       textAlign: 'center',
-      marginTop: 16,
+      marginTop: 12,
       color: theme.secondaryTextColor,
       fontSize: 16,
     },
@@ -172,7 +221,7 @@ export default function SpeechScreen({ navigation }) {
       justifyContent: 'space-between',
       paddingVertical: 16,
       borderTopWidth: 1,
-      borderTopColor: theme.borderColor,
+      borderTopColor: theme.divider,
       marginTop: 'auto',
     },
     switchLabel: {
@@ -184,21 +233,32 @@ export default function SpeechScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.content} contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.micButtonContainer}>
-          <TouchableOpacity
-            style={styles.micButton}
-            onPress={toggleRecording}
-            activeOpacity={0.8}
-          >
-            <Feather 
-              name={isRecording ? "mic-off" : "mic"} 
-              size={40} 
-              color="white" 
+        <View style={styles.controlsContainer}>
+          <View style={styles.languageSelectorContainer}>
+            <Text style={styles.languageSelectorLabel}>Speech Language</Text>
+            <LanguageSelector
+              selectedLanguage={selectedLanguage}
+              onSelectLanguage={handleLanguageSelect}
+              style={styles.languageSelector}
             />
-          </TouchableOpacity>
-          <Text style={styles.statusText}>
-            {isRecording ? "Listening..." : "Tap the microphone to start speaking"}
-          </Text>
+          </View>
+
+          <View style={styles.micButtonContainer}>
+            <TouchableOpacity
+              style={styles.micButton}
+              onPress={toggleRecording}
+              activeOpacity={0.8}
+            >
+              <Feather 
+                name={isRecording ? "mic-off" : "mic"} 
+                size={46} 
+                color="white" 
+              />
+            </TouchableOpacity>
+            <Text style={styles.statusText}>
+              {isRecording ? "Listening..." : "Tap the microphone to start speaking"}
+            </Text>
+          </View>
         </View>
 
         {transcription ? (
