@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -8,6 +8,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 // @ts-ignore - ignoring navigation type for now
 export default function HomeScreen({ navigation }) {
   const { theme } = useTheme();
+  const windowHeight = Dimensions.get('window').height;
+  const isMobile = Platform.OS === 'ios' || Platform.OS === 'android';
   
   const styles = StyleSheet.create({
     container: {
@@ -24,19 +26,23 @@ export default function HomeScreen({ navigation }) {
       width: '100%',
       alignSelf: 'center',
     },
+    initialScreenContainer: {
+      height: windowHeight - 100, // Adjust this value as needed to fit your device
+      justifyContent: 'space-between',
+      paddingBottom: 40,
+    },
     header: {
       alignItems: 'center',
       marginTop: 20,
-      marginBottom: 10,
     },
     logoContainer: {
       alignItems: 'center',
     },
     logo: {
-      width: 400,
-      height: 400,
+      width: 300,
+      height: 300,
       marginTop: 1,
-      marginBottom: -150, // Negative margin to pull text closer to logo
+      marginBottom: isMobile ? -120 : -80, // More negative margin on mobile
     },
     title: {
       fontSize: 32,
@@ -48,11 +54,12 @@ export default function HomeScreen({ navigation }) {
       fontSize: 16,
       color: theme.secondaryTextColor,
       marginTop: 8,
+      marginBottom: isMobile ? 20 : 0, // Add bottom margin on mobile only
       letterSpacing: 0.5,
     },
     buttonContainer: {
-      marginVertical: 10,
-      gap: 24,
+      marginTop: isMobile ? 30 : 'auto', // Remove auto margin on mobile
+      width: '100%',
     },
     primaryButton: {
       borderRadius: 16,
@@ -76,9 +83,13 @@ export default function HomeScreen({ navigation }) {
       fontWeight: '600',
       marginLeft: 12,
     },
+    secondaryContent: {
+      marginTop: 24,
+    },
     secondaryButtonsRow: {
       flexDirection: 'row',
       gap: 16,
+      marginBottom: 24,
     },
     secondaryButton: {
       flex: 1,
@@ -104,7 +115,6 @@ export default function HomeScreen({ navigation }) {
       backgroundColor: theme.mutedBackground,
       borderRadius: 20,
       padding: 24,
-      marginTop: 'auto',
       marginBottom: 24,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
@@ -165,35 +175,44 @@ export default function HomeScreen({ navigation }) {
         scrollEventThrottle={16}
       >
         <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Image 
-                source={require('../../assets/images/Ozzy.png')} 
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <Text style={styles.title}>Ozzy</Text>
-              <Text style={styles.subtitle}>AI-powered speech assistant</Text>
+          {/* Initial Screen - Logo and Main Button */}
+          <View style={[
+            styles.initialScreenContainer,
+            isMobile && { justifyContent: 'flex-start' } // Override justifyContent on mobile
+          ]}>
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <Image 
+                  source={require('../../assets/images/Ozzy.png')} 
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.title}>Ozzy</Text>
+                <Text style={styles.subtitle}>AI-powered speech assistant</Text>
+              </View>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity 
+                style={styles.primaryButton}
+                onPress={() => navigation.navigate('Speech')}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={[theme.accentColor, '#8A4FFF']} 
+                  start={{ x: 0, y: 0 }} 
+                  end={{ x: 1, y: 0 }} 
+                  style={styles.primaryButtonContent}
+                >
+                  <Feather name="mic" size={28} color="white" />
+                  <Text style={styles.primaryButtonText}>Start Speaking</Text>
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
           </View>
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={styles.primaryButton}
-              onPress={() => navigation.navigate('Speech')}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={[theme.accentColor, '#8A4FFF']} 
-                start={{ x: 0, y: 0 }} 
-                end={{ x: 1, y: 0 }} 
-                style={styles.primaryButtonContent}
-              >
-                <Feather name="mic" size={28} color="white" />
-                <Text style={styles.primaryButtonText}>Start Speaking</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
+          {/* Secondary Content - Appears when scrolling */}
+          <View style={styles.secondaryContent}>
             <View style={styles.secondaryButtonsRow}>
               <TouchableOpacity 
                 style={styles.secondaryButton}
@@ -213,29 +232,29 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.secondaryButtonText}>History</Text>
               </TouchableOpacity>
             </View>
-          </View>
 
-          <View style={styles.tipsContainer}>
-            <View style={styles.tipsHeader}>
-              <Feather name="info" size={20} color={theme.accentColor} style={styles.tipsIcon} />
-              <Text style={styles.tipsTitle}>Quick Tips</Text>
-            </View>
-            <View style={styles.tipsList}>
-              <View style={styles.tipItem}>
-                <Text style={styles.tipBullet}>•</Text>
-                <Text style={styles.tipText}>Tap the microphone button to start speaking</Text>
+            <View style={styles.tipsContainer}>
+              <View style={styles.tipsHeader}>
+                <Feather name="info" size={20} color={theme.accentColor} style={styles.tipsIcon} />
+                <Text style={styles.tipsTitle}>Quick Tips</Text>
               </View>
-              <View style={styles.tipItem}>
-                <Text style={styles.tipBullet}>•</Text>
-                <Text style={styles.tipText}>Speak at your natural pace for best recognition</Text>
-              </View>
-              <View style={styles.tipItem}>
-                <Text style={styles.tipBullet}>•</Text>
-                <Text style={styles.tipText}>The AI will transcribe and clarify your speech in real-time</Text>
-              </View>
-              <View style={styles.tipItem}>
-                <Text style={styles.tipBullet}>•</Text>
-                <Text style={styles.tipText}>Adjust settings for your voice preferences</Text>
+              <View style={styles.tipsList}>
+                <View style={styles.tipItem}>
+                  <Text style={styles.tipBullet}>•</Text>
+                  <Text style={styles.tipText}>Tap the microphone button to start speaking</Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <Text style={styles.tipBullet}>•</Text>
+                  <Text style={styles.tipText}>Speak at your natural pace for best recognition</Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <Text style={styles.tipBullet}>•</Text>
+                  <Text style={styles.tipText}>The AI will transcribe and clarify your speech in real-time</Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <Text style={styles.tipBullet}>•</Text>
+                  <Text style={styles.tipText}>Adjust settings for your voice preferences</Text>
+                </View>
               </View>
             </View>
           </View>
