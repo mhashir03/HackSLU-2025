@@ -19,6 +19,8 @@ const SettingsScreen = () => {
   const { theme, isDark, toggleTheme } = useTheme();
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   
   
   const renderSettingItem = (icon, title, hasSwitch = false, switchValue = false, onToggle = () => {}) => (
@@ -80,30 +82,43 @@ const SettingsScreen = () => {
               <Feather name="chevron-right" size={20} color={theme.secondaryTextColor} />
             </View>
           </TouchableOpacity>
-          {renderSettingItem('volume-2', 'Voice Settings', false, false)}
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.secondaryTextColor }]}>General</Text>
-          {renderSettingItem('volume-2', 'Voice Settings', false, false)}
-          {renderSettingItem('bell', 'Notifications', false, false)}
-          {renderSettingItem('lock', 'Privacy', false, false)}
         </View>
         
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.secondaryTextColor }]}>Support</Text>
-          {renderSettingItem('help-circle', 'Help', false, false)}
-          {renderSettingItem('info', 'About', false, false)}
+          <TouchableOpacity 
+            style={[styles.settingItem, { borderBottomColor: theme.borderColor }]}
+            onPress={() => setShowHelpModal(true)}
+          >
+            <View style={styles.settingLeft}>
+              <View style={styles.settingIconContainer}>
+                <Feather name="help-circle" size={22} color={theme.textColor} />
+              </View>
+              <Text style={[styles.settingTitle, { color: theme.textColor }]}>Help</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color={theme.secondaryTextColor} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.settingItem, { borderBottomColor: theme.borderColor }]}
+            onPress={() => setShowAboutModal(true)}
+          >
+            <View style={styles.settingLeft}>
+              <View style={styles.settingIconContainer}>
+                <Feather name="info" size={22} color={theme.textColor} />
+              </View>
+              <Text style={[styles.settingTitle, { color: theme.textColor }]}>About</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color={theme.secondaryTextColor} />
+          </TouchableOpacity>
         </View>
-        
-        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: theme.dangerColor }]}>
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
         
         <Text style={[styles.versionText, { color: theme.secondaryTextColor }]}>
           Version 1.0.0
         </Text>
       </ScrollView>
+
+      {/* Language Modal */}
       <Modal
         visible={showLanguageModal}
         transparent={true}
@@ -145,6 +160,102 @@ const SettingsScreen = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Help Modal */}
+      <Modal
+        visible={showHelpModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowHelpModal(false)}
+      >
+        <View style={[styles.modalContainer, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.cardBackground }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.textColor }]}>Need Help?</Text>
+              <TouchableOpacity onPress={() => setShowHelpModal(false)}>
+                <Feather name="x" size={24} color={theme.textColor} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScroll}>
+              <Text style={[styles.modalSubtitle, { color: theme.textColor }]}>Contact Our Team</Text>
+              
+              <View style={styles.contactItem}>
+                <Feather name="user" size={18} color={theme.textColor} style={styles.contactIcon} />
+                <View>
+                  <Text style={[styles.contactName, { color: theme.textColor }]}>Muhammad Hashir</Text>
+                  <Text style={[styles.contactEmail, { color: theme.secondaryTextColor }]}>mhashir0318@gmail.com</Text>
+                </View>
+              </View>
+              
+              <View style={styles.contactItem}>
+                <Feather name="user" size={18} color={theme.textColor} style={styles.contactIcon} />
+                <View>
+                  <Text style={[styles.contactName, { color: theme.textColor }]}>Mustafa Hashmi</Text>
+                  <Text style={[styles.contactEmail, { color: theme.secondaryTextColor }]}>mustafahashmi2014@gmail.com</Text>
+                </View>
+              </View>
+              
+              <View style={styles.contactItem}>
+                <Feather name="user" size={18} color={theme.textColor} style={styles.contactIcon} />
+                <View>
+                  <Text style={[styles.contactName, { color: theme.textColor }]}>Nilesh Gupta</Text>
+                  <Text style={[styles.contactEmail, { color: theme.secondaryTextColor }]}>guptan1491@gmail.com</Text>
+                </View>
+              </View>
+              
+              <Text style={[styles.helpText, { color: theme.textColor }]}>
+                Have questions, feedback, or want to contribute to Ozzy? Feel free to reach out to any founding engineer above. We're always looking for ways to improve!
+              </Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* About Modal */}
+      <Modal
+        visible={showAboutModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAboutModal(false)}
+      >
+        <View style={[styles.modalContainer, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.cardBackground }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.textColor }]}>About Ozzy</Text>
+              <TouchableOpacity onPress={() => setShowAboutModal(false)}>
+                <Feather name="x" size={24} color={theme.textColor} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScroll}>
+              <View style={styles.aboutLogoContainer}>
+                <Image 
+                  source={require('../../assets/images/Ozzy.png')} 
+                  style={styles.aboutLogo}
+                  resizeMode="contain"
+                />
+              </View>
+              
+              <Text style={[styles.aboutText, { color: theme.textColor }]}>
+                Ozzy is an AI-powered speech assistant designed to enhance communication through advanced speech recognition and intelligent responses. 
+              </Text>
+              
+              <Text style={[styles.aboutText, { color: theme.textColor, marginTop: 10 }]}>
+                Created at HackSLU 2025, Ozzy aims to bridge communication gaps by providing realtime transcription and clarification of speech. Our mission is to make voice technology more accessible and useful for everyone.
+              </Text>
+              
+              <Text style={[styles.aboutText, { color: theme.textColor, marginTop: 10 }]}>
+                The app features multiple language support, intuitive voice controls, and a beautiful interface designed with accessibility in mind.
+              </Text>
+              
+              <Text style={[styles.aboutVersion, { color: theme.secondaryTextColor }]}>
+                Version 1.0.0
+              </Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -178,23 +289,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  settingRight: {
+    flexDirection: 'row',
+    alignItems: 'center', 
+    justifyContent: 'flex-end',
+  },
   settingIconContainer: {
     marginRight: 15,
   },
   settingTitle: {
     fontSize: 16,
-  },
-  logoutButton: {
-    marginHorizontal: 20,
-    marginVertical: 20,
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  logoutText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
   versionText: {
     textAlign: 'center',
@@ -223,10 +327,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: '80%',
+    width: '85%',
+    maxHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -235,13 +339,60 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
   },
+  modalScroll: {
+    marginBottom: 10,
+  },
   languageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+  },
+  modalSubtitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 15,
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  contactIcon: {
+    marginRight: 12,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  contactEmail: {
+    fontSize: 14,
+  },
+  helpText: {
+    marginTop: 20,
+    lineHeight: 22,
+    fontSize: 15,
+  },
+  aboutLogoContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  aboutLogo: {
+    width: 100,
+    height: 100,
+  },
+  aboutText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  aboutVersion: {
+    marginTop: 20,
+    textAlign: 'center',
+    fontSize: 14,
   },
 });
 
