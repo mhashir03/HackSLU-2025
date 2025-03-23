@@ -23,7 +23,7 @@ const HomeStack = () => {
 
 const SpeechStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen 
         name="SpeechMain" 
         component={SpeechScreen} 
@@ -38,7 +38,7 @@ const SpeechStack = () => {
 
 const SettingsStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen 
         name="SettingsMain" 
         component={SettingsScreen} 

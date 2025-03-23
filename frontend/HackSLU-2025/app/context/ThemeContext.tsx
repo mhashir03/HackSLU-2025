@@ -4,29 +4,35 @@ import { useColorScheme } from 'react-native';
 
 // Define theme colors
 const lightTheme = {
-  backgroundColor: '#FFFFFF',
-  cardBackground: '#F2F2F2',
-  textColor: '#121212',
-  secondaryTextColor: '#4A4A4A',
+  backgroundColor: '#F8F9FA',
+  cardBackground: '#FFFFFF',
+  textColor: '#2D3748',
+  secondaryTextColor: '#718096',
   accentColor: '#4A90E2',
-  accentLight: '#E1F0FF',
-  borderColor: '#E5E5E5',
+  accentLight: '#C5DCFA',
+  accentDark: '#3A73B5',
+  borderColor: '#E2E8F0',
   dangerColor: '#FF4D4F',
-  mutedBackground: '#F5F5F5',
-  mutedText: '#71717A',
+  mutedBackground: '#EDF2F7',
+  mutedText: '#718096',
+  gradientStart: '#4A90E2',
+  gradientEnd: '#63B3ED',
 };
 
 const darkTheme = {
-  backgroundColor: '#121212',
-  cardBackground: '#1E1E1E',
-  textColor: '#FFFFFF',
-  secondaryTextColor: '#A1A1AA',
+  backgroundColor: '#1A202C',
+  cardBackground: '#2D3748',
+  textColor: '#F7FAFC',
+  secondaryTextColor: '#A0AEC0',
   accentColor: '#4A90E2',
-  accentLight: '#1A365D',
-  borderColor: '#2E2E2E',
+  accentLight: '#2A4365',
+  accentDark: '#3A73B5',
+  borderColor: '#4A5568',
   dangerColor: '#FF4D4F',
-  mutedBackground: '#2E2E2E',
-  mutedText: '#A1A1AA',
+  mutedBackground: '#2D3748',
+  mutedText: '#A0AEC0',
+  gradientStart: '#2C5282',
+  gradientEnd: '#4A90E2',
 };
 
 const ThemeContext = createContext({

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, ActivityIndicator, Alert, Platform, StatusBar, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { recognizeSpeech } from '../../api/speechApi'
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Define the Language interface
 interface Language {
@@ -15,7 +16,7 @@ interface Language {
 
 // @ts-ignore - ignore navigation type for now
 export default function SpeechScreen({ navigation }) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcription, setTranscription] = useState("");
@@ -138,190 +139,277 @@ export default function SpeechScreen({ navigation }) {
     setClarifiedText("");
   };
 
+  // Define styles aligned with the HomeScreen theme
   const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.backgroundColor,
     },
-    content: {
-      flex: 1,
-      padding: 16,
-      maxWidth: 500,
+    header: {
       width: '100%',
-      alignSelf: 'center',
-    },
-    controlsContainer: {
-      flexDirection: 'column',
+      height: 60,
+      backgroundColor: theme.cardBackground,
+      flexDirection: 'row',
       alignItems: 'center',
-      marginVertical: 30,
-      width: '100%',
+      justifyContent: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderColor,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 2,
     },
-    languageSelectorContainer: {
-      width: '100%',
-      flexDirection: 'column',
-      alignItems: 'center',
-      marginBottom: 30,
-    },
-    languageSelectorLabel: {
+    headerTitle: {
       fontSize: 18,
       fontWeight: '600',
       color: theme.textColor,
-      marginBottom: 10,
-      textAlign: 'center',
     },
-    languageSelector: {
-      minWidth: 150,
+    content: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 16,
+      paddingBottom: 24,
+    },
+    messageContainer: {
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: theme.cardBackground,
+      marginBottom: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: theme.borderColor,
+    },
+    userMessageContainer: {
+      backgroundColor: theme.mutedBackground,
+      borderColor: theme.accentLight,
+    },
+    assistantMessageContainer: {
+      backgroundColor: theme.cardBackground,
+    },
+    messageLabel: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: theme.secondaryTextColor,
+      fontWeight: '600',
+    },
+    messageText: {
+      fontSize: 16,
+      color: theme.textColor,
+      lineHeight: 24,
+    },
+    controlsContainer: {
+      borderTopWidth: 1,
+      borderTopColor: theme.borderColor,
+      padding: 16,
+      backgroundColor: theme.cardBackground,
     },
     micButtonContainer: {
       alignItems: 'center',
-      width: '100%',
+      marginBottom: 16,
     },
     micButton: {
-      width: 110,
-      height: 110,
-      borderRadius: 55,
-      backgroundColor: isRecording ? '#FF4D4F' : theme.accentColor,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 10,
+      shadowColor: theme.accentColor,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
+      overflow: 'hidden',
+    },
+    micButtonContent: {
+      flex: 1,
+      width: '100%',
+      height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     statusText: {
       textAlign: 'center',
-      marginTop: 12,
+      marginTop: 8,
       color: theme.secondaryTextColor,
-      fontSize: 16,
-    },
-    card: {
-      backgroundColor: theme.cardBackground,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-    },
-    cardHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    cardTitle: {
       fontSize: 14,
-      color: theme.secondaryTextColor,
-      fontWeight: '500',
     },
-    cardText: {
-      fontSize: 18,
-      color: theme.textColor,
-    },
-    cardTextBold: {
-      fontSize: 18,
-      color: theme.textColor,
-      fontWeight: '600',
-    },
-    buttonRow: {
-      flexDirection: 'row',
-      gap: 8,
-    },
-    iconButton: {
-      padding: 8,
-    },
-    switchContainer: {
+    settingsContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingVertical: 16,
+      marginTop: 16,
+      paddingTop: 16,
       borderTopWidth: 1,
-      borderTopColor: theme.divider,
-      marginTop: 'auto',
+      borderTopColor: theme.borderColor,
     },
-    switchLabel: {
+    settingLabel: {
       fontSize: 16,
       color: theme.textColor,
     },
     loadingContainer: {
-      marginTop: 20,
+      padding: 20,
       alignItems: 'center',
+      justifyContent: 'center',
+    },
+    actionsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginTop: 8,
+    },
+    actionButton: {
+      padding: 8,
+      borderRadius: 4,
+      backgroundColor: theme.mutedBackground,
+      marginLeft: 8,
+    },
+    actionIcon: {
+      color: theme.accentColor,
+    },
+    waveBackground: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 200,
+      opacity: 0.1,
+      zIndex: -1,
+    },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 30,
+      marginTop: 20,
+    },
+    title: {
+      fontSize: 34,
+      fontWeight: 'bold',
+      color: theme.textColor,
+    },
+    logo: {
+      width: 50,
+      height: 50,
+      marginLeft: 12,
     },
   });
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView style={styles.content} contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.micButtonContainer}>
-          <TouchableOpacity
-            style={styles.micButton}
-            onPress={toggleRecording}
-            activeOpacity={0.8}
-            disabled={isProcessing}
-          >
-            <Feather 
-              name={isRecording ? "mic-off" : "mic"} 
-              size={40} 
-              color="white" 
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      
+      <View style={styles.content}>
+        <ScrollView 
+          style={{flex: 1}}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Ozzy title and logo */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Ozzy</Text>
+            <Image 
+              source={require('../../assets/images/Ozzy.png')} 
+              style={styles.logo}
+              resizeMode="contain"
             />
-          </TouchableOpacity>
-          <Text style={styles.statusText}>
-            {isRecording 
-              ? "Listening..." 
-              : isProcessing 
-                ? "Processing..." 
-                : "Tap the microphone to start speaking"}
-          </Text>
-        </View>
-
-        {isProcessing && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.accentColor} />
           </View>
-        )}
-
-        {transcription ? (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Original Speech</Text>
-              <TouchableOpacity 
-                style={styles.iconButton}
-                onPress={() => copyToClipboard(transcription)}
-              >
-                <Feather name="copy" size={20} color={theme.secondaryTextColor} />
-              </TouchableOpacity>
+          
+          {transcription ? (
+            <View style={[styles.messageContainer, styles.userMessageContainer]}>
+              <Text style={styles.messageLabel}>You</Text>
+              <Text style={styles.messageText}>{transcription}</Text>
             </View>
-            <Text style={styles.cardText}>{transcription}</Text>
-          </View>
-        ) : null}
+          ) : null}
 
-        {clarifiedText ? (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>AI Clarified</Text>
-              <View style={styles.buttonRow}>
+          {clarifiedText ? (
+            <View style={[styles.messageContainer, styles.assistantMessageContainer]}>
+              <Text style={styles.messageLabel}>Ozzy</Text>
+              <Text style={styles.messageText}>{clarifiedText}</Text>
+              <View style={styles.actionsContainer}>
                 <TouchableOpacity 
-                  style={styles.iconButton}
+                  style={styles.actionButton}
                   onPress={() => speakText(clarifiedText)}
                 >
-                  <Feather name="volume-2" size={20} color={theme.secondaryTextColor} />
+                  <Feather name="volume-2" size={18} style={styles.actionIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={styles.iconButton}
+                  style={styles.actionButton}
                   onPress={() => copyToClipboard(clarifiedText)}
                 >
-                  <Feather name="copy" size={20} color={theme.secondaryTextColor} />
+                  <Feather name="copy" size={18} style={styles.actionIcon} />
                 </TouchableOpacity>
               </View>
             </View>
-            <Text style={styles.cardTextBold}>{clarifiedText}</Text>
-          </View>
-        ) : null}
+          ) : null}
 
-        <View style={styles.switchContainer}>
-          <Text style={styles.switchLabel}>Auto-speak clarified text</Text>
-          <Switch
-            value={autoSpeak}
-            onValueChange={setAutoSpeak}
-            trackColor={{ false: theme.mutedBackground, true: theme.accentColor }}
-            thumbColor="white"
+          {isProcessing && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.accentColor} />
+            </View>
+          )}
+          
+          {/* Decorative wave background */}
+          <Image
+            source={require('../../assets/images/bg.png')}
+            style={styles.waveBackground}
+            resizeMode="cover"
           />
+        </ScrollView>
+        
+        {/* Bottom controls area */}
+        <View style={styles.controlsContainer}>
+          <View style={styles.micButtonContainer}>
+            <TouchableOpacity
+              style={styles.micButton}
+              onPress={toggleRecording}
+              activeOpacity={0.8}
+              disabled={isProcessing}
+            >
+              {isRecording ? (
+                // @ts-ignore - ignore LinearGradient props error
+                <LinearGradient
+                  colors={[theme.dangerColor, '#FF7A7A']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.micButtonContent}
+                >
+                  <Feather name="mic-off" size={24} color="white" />
+                </LinearGradient>
+              ) : (
+                // @ts-ignore - ignore LinearGradient props error
+                <LinearGradient
+                  colors={[theme.accentColor, '#8A4FFF']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.micButtonContent}
+                >
+                  <Feather name="mic" size={24} color="white" />
+                </LinearGradient>
+              )}
+            </TouchableOpacity>
+            <Text style={styles.statusText}>
+              {isRecording 
+                ? "Listening..." 
+                : isProcessing 
+                  ? "Processing..." 
+                  : "Tap the microphone to start speaking"}
+            </Text>
+          </View>
+          
+          <View style={styles.settingsContainer}>
+            <Text style={styles.settingLabel}>Auto-speak responses</Text>
+            <Switch
+              value={autoSpeak}
+              onValueChange={setAutoSpeak}
+              trackColor={{ false: isDark ? theme.mutedBackground : '#E2E8F0', true: theme.accentColor }}
+              thumbColor={"#FFFFFF"}
+              ios_backgroundColor={isDark ? theme.mutedBackground : '#E2E8F0'}
+            />
+          </View>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

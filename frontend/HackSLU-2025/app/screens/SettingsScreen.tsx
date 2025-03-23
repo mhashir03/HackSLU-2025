@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, Modal, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -45,15 +45,18 @@ const SettingsScreen = () => {
   
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: theme.textColor }]}>
-          Settings
-        </Text>
-        <Feather name="settings" size={24} color={theme.textColor} />
-      </View>
-      
       <ScrollView style={styles.scrollView}>
-      <View style={styles.section}>
+        {/* Ozzy title and logo */}
+        <View style={styles.titleContainer}>
+          <Text style={[styles.title, { color: theme.textColor }]}>Ozzy</Text>
+          <Image 
+            source={require('../../assets/images/Ozzy.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+        
+        <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.secondaryTextColor }]}>Appearance</Text>
           {renderSettingItem('moon', 'Dark Mode', true, isDark, toggleTheme)}
         </View>
@@ -150,17 +153,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
   scrollView: {
     flex: 1,
   },
@@ -208,6 +200,48 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
     fontSize: 14,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 30,
+    marginTop: 20,
+  },
+  title: {
+    fontSize: 34,
+    fontWeight: 'bold',
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    marginLeft: 12,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  languageItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
 });
 
