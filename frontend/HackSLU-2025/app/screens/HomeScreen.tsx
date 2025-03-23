@@ -27,13 +27,16 @@ export default function HomeScreen({ navigation }) {
     header: {
       alignItems: 'center',
       marginTop: 20,
-      marginBottom: 40,
+      marginBottom: 10,
+    },
+    logoContainer: {
+      alignItems: 'center',
     },
     logo: {
-      width: 300,
-      height: 300,
+      width: 400,
+      height: 400,
       marginTop: 1,
-      marginBottom: 1,
+      marginBottom: -150, // Negative margin to pull text closer to logo
     },
     title: {
       fontSize: 32,
@@ -48,7 +51,7 @@ export default function HomeScreen({ navigation }) {
       letterSpacing: 0.5,
     },
     buttonContainer: {
-      marginVertical: 32,
+      marginVertical: 10,
       gap: 24,
     },
     primaryButton: {
@@ -163,14 +166,15 @@ export default function HomeScreen({ navigation }) {
       >
         <View style={styles.content}>
           <View style={styles.header}>
-            {/* Larger logo */}
-            <Image 
-              source={require('../../assets/images/Ozzy.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>Ozzy</Text>
-            <Text style={styles.subtitle}>AI-powered speech assistant</Text>
+            <View style={styles.logoContainer}>
+              <Image 
+                source={require('../../assets/images/Ozzy.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <Text style={styles.title}>Ozzy</Text>
+              <Text style={styles.subtitle}>AI-powered speech assistant</Text>
+            </View>
           </View>
 
           <View style={styles.buttonContainer}>
