@@ -1,7 +1,7 @@
 # Node modules
 node_modules/
 
-.json
+app.json
 .env
 
 # Lock files

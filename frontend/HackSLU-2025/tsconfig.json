@@ -1,0 +1,29 @@
+{
+    "extends": "expo/tsconfig.base",
+    "compilerOptions": {
+      "module": "ES2015",
+      "target": "ESNext",
+      "strict": false,
+      "noImplicitAny": false,
+      "jsx": "react-native",
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "moduleResolution": "node",
+      "allowSyntheticDefaultImports": true,
+      "paths": {
+        "@/*": [
+          "./*"
+        ]
+      }
+    },
+    "include": [
+      "**/*.ts",
+      "**/*.tsx",
+      ".expo/types/**/*.ts",
+      "expo-env.d.ts",
+      "global.d.ts",
+      ".env",
+      "app.json"
+    ]
+  }

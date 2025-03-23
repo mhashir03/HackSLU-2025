@@ -6,6 +6,7 @@ import * as Speech from 'expo-speech';
 import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { recognizeSpeech } from '../../api/speechApi'
+import { enhanceTranscription } from '../../api/speechApi';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as FileSystem from 'expo-file-system';
 
@@ -35,6 +36,8 @@ export default function SpeechScreen({ navigation }: NavigationProps) {
     code: 'en-US',  // Default to English
     name: 'English'
   });
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordingTimer, setRecordingTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Request permissions
@@ -75,63 +78,69 @@ export default function SpeechScreen({ navigation }: NavigationProps) {
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
       
+      // Save the recording object to state
       setRecording(recording);
-      setIsRecording(true);
       
+      setIsRecording(true);
+      setRecordingTime(0);
+      // Start a timer to track recording duration
+      const timer = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      setRecordingTimer(timer);
     } catch (err) {
       console.error('Failed to start recording', err);
       Alert.alert('Error', 'Failed to start recording');
     }
   }
 
-
-// Then update the stopRecording function to improve handling for slurred speech:
-
-async function stopRecording() {
-  if (!recording) return;
-  
-  setIsRecording(false);
-  setIsProcessing(true);
-  
-  try {
-    await recording.stopAndUnloadAsync();
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-    });
+  async function stopRecording() {
+    if (!recording) return;
     
-    // Send to Whisper API for processing
-    const result = await recognizeSpeech(recording);
-    
-    if (result.error) {
-      console.warn('Speech recognition warning:', result.error);
-      // You could show a more specific error to the user if needed
+    setIsRecording(false);
+    setIsProcessing(true);
+    // Clear the recording timer
+    if (recordingTimer) {
+      clearInterval(recordingTimer);
+      setRecordingTimer(null);
     }
     
-    setTranscription(result.text);
-    
-    // For slurred speech, you might want to add some post-processing
-    // This is optional and depends on your specific needs
-    let enhancedText = result.text;
-    
-    // Example of simple post-processing (this is just illustrative)
-    // In a real app, you might use a more sophisticated approach or AI model
-    enhancedText = enhancedText.trim();
-    
-    // Set the clarified text
-    setClarifiedText(enhancedText);
-    
-  } catch (err) {
-    console.error('Error processing speech:', err);
-    Alert.alert(
-      'Transcription Error', 
-      'Failed to process speech recording. Please try again, speaking clearly and slowly.',
-      [{ text: 'OK' }]
-    );
-  } finally {
-    setIsProcessing(false);
-    setRecording(null);
+    try {
+      await recording.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+      });
+      
+      // Send to Whisper API for processing
+      const result = await recognizeSpeech(recording);
+
+      if (result.error) {
+        console.warn('Speech recognition warning:', result.error);
+        // You could show a more specific error to the user if needed
+      }
+      
+      setTranscription(result.text);
+      
+      // post-processing
+      let enhancedText = enhanceTranscription(result.text);
+      
+      enhancedText = enhancedText.trim();
+      
+      // Set the clarified text
+      setClarifiedText(enhancedText);
+      
+    } catch (err) {
+      console.error('Error processing speech:', err);
+      Alert.alert(
+        'Transcription Error', 
+        'Failed to process speech recording. Please try again, speaking clearly and slowly.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsProcessing(false);
+      setRecording(null);
+    }
   }
-}
 
   const toggleRecording = () => {
     if (isRecording) {
@@ -255,6 +264,12 @@ async function stopRecording() {
       shadowRadius: 8,
       elevation: 6,
       overflow: 'hidden',
+    },
+    timerText: {
+      marginTop: 8,
+      fontSize: 16,
+      color: theme.accentColor,
+      fontWeight: '600',
     },
     micButtonContent: {
       flex: 1,
@@ -385,6 +400,11 @@ async function stopRecording() {
           {/* Bottom controls area */}
           <View style={styles.controlsContainer}>
             <View style={styles.micButtonContainer}>
+              {isRecording && (
+                <Text style={styles.timerText}>
+                  {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                </Text>
+              )}
               <TouchableOpacity
                 style={styles.micButton}
                 onPress={toggleRecording}
