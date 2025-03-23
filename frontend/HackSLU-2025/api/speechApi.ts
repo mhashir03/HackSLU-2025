@@ -56,14 +56,15 @@ export async function recognizeSpeech(recording) {
     
     // Add a prompt to help with slurred speech recognition
     formData.append('prompt', 
-      'This audio may contain slurred speech. Please transcribe as accurately as possible, ' +
-      'focusing on content over perfect pronunciation.'
+      'This audio contains slurred speech. The speaker may have difficulty pronouncing certain sounds ' +
+        'or may speak at an irregular pace. Please transcribe as accurately as possible, focusing on ' +
+        'content over perfect pronunciation. Common words in this context include medical terms, ' +
+        'daily activities, and communication needs.'
     );
     
     // Optional: For slurred speech, we might want to use higher response formats
     // formData.append('response_format', 'verbose_json');
     
-    console.log('Sen ding audio to Whisper API...');
     
     // Send the request to the Whisper API
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -115,17 +116,35 @@ export function enhanceTranscription(text) {
   // Basic text cleanup
   let enhanced = text.trim();
   
-  // You can add specific corrections for commonly misunderstood words
-  // This would be customized based on your users' specific speech patterns
-  // const corrections = {
-  //   'comuter': 'computer',
-  //   'interneh': 'internet',
-  //   // Add more specific corrections as needed
-  // };
-  
-  // for (const [incorrect, correct] of Object.entries(corrections)) {
-  //   enhanced = enhanced.replace(new RegExp(incorrect, 'gi'), correct);
-  // }
+    // Dictionary of common slurred speech patterns
+    const corrections = {
+        // Consonant simplification patterns
+        'sis': 'this',
+        'dat': 'that',
+        'dere': 'there',
+        'tink': 'think',
+        'wif': 'with',
+        
+        // Vowel elongation or substitution
+        'cain': 'can',
+        'cannt': 'can\'t',
+        'wanna': 'want to',
+        'gonna': 'going to',
+        
+        // Word boundary issues
+        'amigoing': 'am I going',
+        'howbout': 'how about',
+        'whatssat': 'what\'s that',
+        
+        // Add more corrections specific to your users' speech patterns
+      };
+      
+      // Apply corrections
+      for (const [incorrect, correct] of Object.entries(corrections)) {
+        // Use word boundary markers to avoid partial word replacements
+        const regex = new RegExp(`\\b${incorrect}\\b`, 'gi');
+        enhanced = enhanced.replace(regex, correct);
+      }
   
   return enhanced;
 }
