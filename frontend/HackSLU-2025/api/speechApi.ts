@@ -1,127 +1,132 @@
+// api/speechApi.js
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
-
-// Replace with your actual OpenAI API key
-const OPENAI_API_KEY = '';
+import Constants from 'expo-constants';
 
 /**
- * Converts an Expo Audio recording to a base64 string
- * @param {Audio.Recording} recording - The Expo Audio recording
- * @returns {Promise<string>} - Base64 string of the audio file
+ * Get the Whisper API key from environment variables
+ * In development, this comes from app.config.js or .env
+ * In production, this should be set in your build process
  */
-async function getBase64FromRecording(recording) {
+const getApiKey = () => {
   try {
-    const uri = recording.getURI();
-    if (!uri) throw new Error('Recording URI is undefined');
+    // Access environment variables through Constants.expoConfig.extra
+    const apiKey = Constants.expoConfig?.extra?.whisperApiKey;
     
-    // Read the file as base64
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    if (!apiKey) {
+      throw new Error("No Whisper API key found in environment configuration");
+    }
     
-    return base64;
+    return apiKey;
   } catch (error) {
-    console.error('Error converting recording to base64:', error);
-    throw error;
+    console.error("Error retrieving API key:", error);
+    throw new Error("API key not configured properly. Please check your environment setup.");
   }
-}
+};
 
 /**
- * Processes audio using the OpenAI Whisper API
+ * Processes audio using the OpenAI Whisper API, optimized for slurred speech
  * @param {Audio.Recording} recording - The Expo Audio recording
- * @returns {Promise<{text: string}>} - Transcribed text
+ * @returns {Promise<{text: string, error?: string}>} - Transcribed text and optional error
  */
 export async function recognizeSpeech(recording) {
   try {
-    // Get the recording URI and file info
+    // Get the recording URI
     const uri = recording.getURI();
     if (!uri) throw new Error('Recording URI is undefined');
     
+    // Verify file exists
     const fileInfo = await FileSystem.getInfoAsync(uri);
     if (!fileInfo.exists) throw new Error('Recording file not found');
+    
+    // Get API key securely
+    const OPENAI_API_KEY = getApiKey();
     
     // Create form data for the API request
     const formData = new FormData();
     formData.append('file', {
       uri: uri,
-      type: 'audio/m4a', // Adjust based on your recording format
+      type: 'audio/m4a', // Default format for Expo recordings
       name: 'recording.m4a',
     });
-    formData.append('model', 'whisper-1');
     
-    // Optional: Add parameters to handle slurred speech better
-    formData.append('language', 'en'); // Specify the language if known
-    formData.append('prompt', 'This may contain slurred speech. Please transcribe accurately.');
+    // Configure Whisper API options
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'en'); // Specify language for better accuracy
+    
+    // Add a prompt to help with slurred speech recognition
+    formData.append('prompt', 
+      'This audio may contain slurred speech. Please transcribe as accurately as possible, ' +
+      'focusing on content over perfect pronunciation.'
+    );
+    
+    // Optional: For slurred speech, we might want to use higher response formats
+    // formData.append('response_format', 'verbose_json');
+    
+    console.log('Sen ding audio to Whisper API...');
     
     // Send the request to the Whisper API
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        // Don't set Content-Type header here, let it be set automatically for FormData
+        // Let FormData set its own Content-Type with boundary
       },
       body: formData,
     });
     
+    // Handle API errors
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Whisper API error: ${errorData.error?.message || response.statusText}`);
+      const errorMessage = errorData.error?.message || response.statusText;
+      console.error(`Whisper API returned error: ${errorMessage}`);
+      throw new Error(`Transcription failed: ${errorMessage}`);
     }
     
+    // Parse the response
     const data = await response.json();
     
-    // Return the transcribed text
+    // Log success (remove in production)
+    console.log('Successfully received transcription from Whisper API');
+    
     return { 
       text: data.text,
-      // You could add more properties here if needed
+      // If using verbose_json format, you could return more data here
     };
   } catch (error) {
-    console.error('Whisper API error:', error);
-    // Return a user-friendly error message
+    console.error('Error in speech recognition:', error);
+    
+    // Return a user-friendly error message and the technical details
     return { 
-      text: "Sorry, I couldn't understand that. Please try speaking again.",
+      text: "Sorry, I couldn't transcribe that audio. Please try again.",
       error: error.message 
     };
   }
 }
 
 /**
- * Alternative implementation using base64 encoding
- * Use this if the FormData approach doesn't work
+ * Enhance transcribed text to correct common issues with slurred speech
+ * @param {string} text - The original transcribed text
+ * @returns {string} - Enhanced text
  */
-export async function recognizeSpeechBase64(recording) {
-  try {
-    // Get base64 audio data
-    const base64Audio = await getBase64FromRecording(recording);
-    
-    // Send the request to the Whisper API
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'whisper-1',
-        file: base64Audio,
-        language: 'en', // Specify the language if known
-        prompt: 'This may contain slurred speech. Please transcribe accurately.',
-      }),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Whisper API error: ${errorData.error?.message || response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    return { text: data.text };
-  } catch (error) {
-    console.error('Whisper API error:', error);
-    return { 
-      text: "Sorry, I couldn't understand that. Please try speaking again.",
-      error: error.message 
-    };
-  }
+export function enhanceTranscription(text) {
+  if (!text) return text;
+  
+  // Basic text cleanup
+  let enhanced = text.trim();
+  
+  // You can add specific corrections for commonly misunderstood words
+  // This would be customized based on your users' specific speech patterns
+  // const corrections = {
+  //   'comuter': 'computer',
+  //   'interneh': 'internet',
+  //   // Add more specific corrections as needed
+  // };
+  
+  // for (const [incorrect, correct] of Object.entries(corrections)) {
+  //   enhanced = enhanced.replace(new RegExp(incorrect, 'gi'), correct);
+  // }
+  
+  return enhanced;
 }
+
