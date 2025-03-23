@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { recognizeSpeech } from '../../api/speechApi'
 import { LinearGradient } from 'expo-linear-gradient';
+import * as FileSystem from 'expo-file-system';
 
 // Define the Language interface
 interface Language {
@@ -83,34 +84,54 @@ export default function SpeechScreen({ navigation }: NavigationProps) {
     }
   }
 
-  async function stopRecording() {
-    if (!recording) return;
+
+// Then update the stopRecording function to improve handling for slurred speech:
+
+async function stopRecording() {
+  if (!recording) return;
+  
+  setIsRecording(false);
+  setIsProcessing(true);
+  
+  try {
+    await recording.stopAndUnloadAsync();
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+    });
     
-    setIsRecording(false);
-    setIsProcessing(true);
+    // Send to Whisper API for processing
+    const result = await recognizeSpeech(recording);
     
-    try {
-      await recording.stopAndUnloadAsync();
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-      });
-      
-      // Send to backend for processing
-      const result = await recognizeSpeech(recording);
-      setTranscription(result.text);
-      
-      // In a real app, you might want to do some post-processing
-      // or enhancement of the recognized text
-      setClarifiedText(result.text);
-      
-    } catch (err) {
-      console.error('Error processing speech:', err);
-      Alert.alert('Error', 'Failed to process speech recording');
-    } finally {
-      setIsProcessing(false);
-      setRecording(null);
+    if (result.error) {
+      console.warn('Speech recognition warning:', result.error);
+      // You could show a more specific error to the user if needed
     }
+    
+    setTranscription(result.text);
+    
+    // For slurred speech, you might want to add some post-processing
+    // This is optional and depends on your specific needs
+    let enhancedText = result.text;
+    
+    // Example of simple post-processing (this is just illustrative)
+    // In a real app, you might use a more sophisticated approach or AI model
+    enhancedText = enhancedText.trim();
+    
+    // Set the clarified text
+    setClarifiedText(enhancedText);
+    
+  } catch (err) {
+    console.error('Error processing speech:', err);
+    Alert.alert(
+      'Transcription Error', 
+      'Failed to process speech recording. Please try again, speaking clearly and slowly.',
+      [{ text: 'OK' }]
+    );
+  } finally {
+    setIsProcessing(false);
+    setRecording(null);
   }
+}
 
   const toggleRecording = () => {
     if (isRecording) {

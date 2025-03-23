@@ -1,134 +1,127 @@
 import { Audio } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 
-// Replace with your Supabase URL
-const API_BASE_URL = 'https://kxmqhjwwylomedrvjuzl.supabase.co';
+// Replace with your actual OpenAI API key
+const OPENAI_API_KEY = '';
 
-// You'll likely need an API key for authentication
-const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bXFoand3eWxvbWVkcnZqdXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2Njk5NzcsImV4cCI6MjA1ODI0NTk3N30.ekbsKB3nY8c9IgfTmlcNxTk781esT6g-5ZpCT3ZS8oc';
-
-export interface RecognitionResult {
-  text: string;
-  language: string;
-}
-
-export interface TranslationResult {
-  translated_text: string;
-}
-
-export interface RecognizeAndTranslateResult {
-  original_text: string;
-  translated_text: string;
-  detected_language: string;
+/**
+ * Converts an Expo Audio recording to a base64 string
+ * @param {Audio.Recording} recording - The Expo Audio recording
+ * @returns {Promise<string>} - Base64 string of the audio file
+ */
+async function getBase64FromRecording(recording) {
+  try {
+    const uri = recording.getURI();
+    if (!uri) throw new Error('Recording URI is undefined');
+    
+    // Read the file as base64
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    
+    return base64;
+  } catch (error) {
+    console.error('Error converting recording to base64:', error);
+    throw error;
+  }
 }
 
 /**
- * Send recorded audio to Supabase for speech recognition
+ * Processes audio using the OpenAI Whisper API
+ * @param {Audio.Recording} recording - The Expo Audio recording
+ * @returns {Promise<{text: string}>} - Transcribed text
  */
-export async function recognizeSpeech(
-  recording: Audio.Recording,
-  sourceLang?: string
-): Promise<RecognitionResult> {
-  const uri = await recording.getURI();
-  if (!uri) {
-    throw new Error('Failed to get recording URI');
+export async function recognizeSpeech(recording) {
+  try {
+    // Get the recording URI and file info
+    const uri = recording.getURI();
+    if (!uri) throw new Error('Recording URI is undefined');
+    
+    const fileInfo = await FileSystem.getInfoAsync(uri);
+    if (!fileInfo.exists) throw new Error('Recording file not found');
+    
+    // Create form data for the API request
+    const formData = new FormData();
+    formData.append('file', {
+      uri: uri,
+      type: 'audio/m4a', // Adjust based on your recording format
+      name: 'recording.m4a',
+    });
+    formData.append('model', 'whisper-1');
+    
+    // Optional: Add parameters to handle slurred speech better
+    formData.append('language', 'en'); // Specify the language if known
+    formData.append('prompt', 'This may contain slurred speech. Please transcribe accurately.');
+    
+    // Send the request to the Whisper API
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        // Don't set Content-Type header here, let it be set automatically for FormData
+      },
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Whisper API error: ${errorData.error?.message || response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Return the transcribed text
+    return { 
+      text: data.text,
+      // You could add more properties here if needed
+    };
+  } catch (error) {
+    console.error('Whisper API error:', error);
+    // Return a user-friendly error message
+    return { 
+      text: "Sorry, I couldn't understand that. Please try speaking again.",
+      error: error.message 
+    };
   }
-
-  // Create form data with the audio file
-  const formData = new FormData();
-  formData.append('audio_file', {
-    uri,
-    type: 'audio/wav',
-    name: 'recording.wav',
-  } as any);
-
-  if (sourceLang) {
-    formData.append('source_lang', sourceLang);
-  }
-
-  // Send the request to Supabase
-  const response = await fetch(`${API_BASE_URL}/rest/v1/recognize`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_API_KEY,
-      'Authorization': `Bearer ${SUPABASE_API_KEY}`,
-      // You might need additional headers depending on your Supabase setup
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to recognize speech');
-  }
-
-  return response.json();
 }
 
 /**
- * Translate text from one language to another via Supabase
+ * Alternative implementation using base64 encoding
+ * Use this if the FormData approach doesn't work
  */
-export async function translateText(
-  text: string,
-  sourceLang: string,
-  targetLang: string
-): Promise<TranslationResult> {
-  const response = await fetch(`${API_BASE_URL}/rest/v1/translate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_API_KEY,
-      'Authorization': `Bearer ${SUPABASE_API_KEY}`,
-    },
-    body: JSON.stringify({
-      text,
-      source_lang: sourceLang,
-      target_lang: targetLang,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to translate text');
+export async function recognizeSpeechBase64(recording) {
+  try {
+    // Get base64 audio data
+    const base64Audio = await getBase64FromRecording(recording);
+    
+    // Send the request to the Whisper API
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'whisper-1',
+        file: base64Audio,
+        language: 'en', // Specify the language if known
+        prompt: 'This may contain slurred speech. Please transcribe accurately.',
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Whisper API error: ${errorData.error?.message || response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    return { text: data.text };
+  } catch (error) {
+    console.error('Whisper API error:', error);
+    return { 
+      text: "Sorry, I couldn't understand that. Please try speaking again.",
+      error: error.message 
+    };
   }
-
-  return response.json();
-}
-
-/**
- * Recognize speech and translate it in one call via Supabase
- */
-export async function recognizeAndTranslate(
-  recording: Audio.Recording,
-  targetLang: string
-): Promise<RecognizeAndTranslateResult> {
-  const uri = await recording.getURI();
-  if (!uri) {
-    throw new Error('Failed to get recording URI');
-  }
-
-  // Create form data with the audio file
-  const formData = new FormData();
-  formData.append('audio_file', {
-    uri,
-    type: 'audio/wav',
-    name: 'recording.wav',
-  } as any);
-  formData.append('target_lang', targetLang);
-
-  // Send the request to Supabase
-  const response = await fetch(`${API_BASE_URL}/rest/v1/recognize_and_translate`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_API_KEY,
-      'Authorization': `Bearer ${SUPABASE_API_KEY}`,
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to process speech');
-  }
-
-  return response.json();
 }
