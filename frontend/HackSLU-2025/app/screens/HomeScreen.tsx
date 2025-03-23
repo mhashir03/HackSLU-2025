@@ -42,23 +42,24 @@ export default function HomeScreen({ navigation }) {
       width: 300,
       height: 300,
       marginTop: 1,
-      marginBottom: isMobile ? -120 : -80, // More negative margin on mobile
+      marginBottom: isMobile ? -50 : -80, // Changed from -120 to -50 for mobile
     },
     title: {
       fontSize: 32,
       fontWeight: 'bold',
       color: theme.textColor,
       letterSpacing: 1,
+      marginTop: isMobile ? 30 : 0, // Added top margin for mobile
     },
     subtitle: {
       fontSize: 16,
       color: theme.secondaryTextColor,
-      marginTop: 8,
-      marginBottom: isMobile ? 20 : 0, // Add bottom margin on mobile only
+      marginTop: isMobile ? 12 : 8, // Increased top margin for mobile
+      marginBottom: isMobile ? 30 : 0, // Increased bottom margin for mobile
       letterSpacing: 0.5,
     },
     buttonContainer: {
-      marginTop: isMobile ? 30 : 'auto', // Remove auto margin on mobile
+      marginTop: isMobile ? 40 : 'auto', // Increased top margin for mobile
       width: '100%',
     },
     primaryButton: {

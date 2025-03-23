@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, ActivityIndicator, Alert, Platform, StatusBar, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, ActivityIndicator, Alert, Platform, StatusBar, Image, ImageBackground } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
@@ -14,8 +14,14 @@ interface Language {
   name: string;
 }
 
-// @ts-ignore - ignore navigation type for now
-export default function SpeechScreen({ navigation }) {
+// Define the navigation prop type
+interface NavigationProps {
+  navigation: {
+    navigate: (screen: string) => void;
+  };
+}
+
+export default function SpeechScreen({ navigation }: NavigationProps) {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [isRecording, setIsRecording] = useState(false);
@@ -23,8 +29,8 @@ export default function SpeechScreen({ navigation }) {
   const [transcription, setTranscription] = useState("");
   const [clarifiedText, setClarifiedText] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(true);
-  const [recording, setRecording] = useState(null);
-  const [selectedLanguage, setSelectedLanguage] = useState({ 
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>({ 
     code: 'en-US',  // Default to English
     name: 'English'
   });
@@ -114,8 +120,7 @@ export default function SpeechScreen({ navigation }) {
     }
   };
 
-  // @ts-ignore - ignore text type for now
-  const speakText = (text) => {
+  const speakText = (text: string) => {
     Speech.speak(text, {
       language: selectedLanguage.code,
       pitch: 1.0,
@@ -123,8 +128,7 @@ export default function SpeechScreen({ navigation }) {
     });
   };
 
-  // @ts-ignore - ignore text type for now
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text: string) => {
     // In a real app, you would use Clipboard.setString(text)
     alert('Text copied to clipboard');
   };
@@ -144,7 +148,14 @@ export default function SpeechScreen({ navigation }) {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundColor,
+    },
+    backgroundImage: {
+      width: '100%',
+      height: '100%',
+    },
+    contentContainer: {
+      flex: 1,
+      backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.8)',
     },
     header: {
       width: '100%',
@@ -177,18 +188,18 @@ export default function SpeechScreen({ navigation }) {
     messageContainer: {
       paddingVertical: 16,
       paddingHorizontal: 16,
-      backgroundColor: theme.cardBackground,
+      backgroundColor: isDark ? 'rgba(30, 30, 30, 0.85)' : 'rgba(255, 255, 255, 0.85)',
       marginBottom: 12,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: theme.borderColor,
     },
     userMessageContainer: {
-      backgroundColor: theme.mutedBackground,
+      backgroundColor: isDark ? 'rgba(50, 50, 70, 0.85)' : 'rgba(240, 240, 255, 0.85)',
       borderColor: theme.accentLight,
     },
     assistantMessageContainer: {
-      backgroundColor: theme.cardBackground,
+      backgroundColor: isDark ? 'rgba(30, 30, 30, 0.85)' : 'rgba(255, 255, 255, 0.85)',
     },
     messageLabel: {
       fontSize: 14,
@@ -205,7 +216,7 @@ export default function SpeechScreen({ navigation }) {
       borderTopWidth: 1,
       borderTopColor: theme.borderColor,
       padding: 16,
-      backgroundColor: theme.cardBackground,
+      backgroundColor: isDark ? 'rgba(20, 20, 20, 0.9)' : 'rgba(255, 255, 255, 0.9)',
     },
     micButtonContainer: {
       alignItems: 'center',
@@ -263,23 +274,14 @@ export default function SpeechScreen({ navigation }) {
     actionButton: {
       padding: 8,
       borderRadius: 4,
-      backgroundColor: theme.mutedBackground,
+      backgroundColor: isDark ? 'rgba(60, 60, 80, 0.8)' : 'rgba(240, 240, 255, 0.8)',
       marginLeft: 8,
     },
     actionIcon: {
       color: theme.accentColor,
     },
-    waveBackground: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 200,
-      opacity: 0.1,
-      zIndex: -1,
-    },
     titleContainer: {
-      flexDirection: 'row',
+      width: '100%',
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 30,
@@ -289,128 +291,127 @@ export default function SpeechScreen({ navigation }) {
       fontSize: 34,
       fontWeight: 'bold',
       color: theme.textColor,
+      marginTop: 10, // Add margin top for spacing between logo and text
     },
     logo: {
-      width: 50,
-      height: 50,
-      marginLeft: 12,
+      width: 150, // Increased from 120
+      height: 150, // Increased from 120
     },
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      
-      <View style={styles.content}>
-        <ScrollView 
-          style={{flex: 1}}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Ozzy title and logo */}
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>Ozzy</Text>
-            <Image 
-              source={require('../../assets/images/Ozzy.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-          
-          {transcription ? (
-            <View style={[styles.messageContainer, styles.userMessageContainer]}>
-              <Text style={styles.messageLabel}>You</Text>
-              <Text style={styles.messageText}>{transcription}</Text>
-            </View>
-          ) : null}
-
-          {clarifiedText ? (
-            <View style={[styles.messageContainer, styles.assistantMessageContainer]}>
-              <Text style={styles.messageLabel}>Ozzy</Text>
-              <Text style={styles.messageText}>{clarifiedText}</Text>
-              <View style={styles.actionsContainer}>
-                <TouchableOpacity 
-                  style={styles.actionButton}
-                  onPress={() => speakText(clarifiedText)}
-                >
-                  <Feather name="volume-2" size={18} style={styles.actionIcon} />
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.actionButton}
-                  onPress={() => copyToClipboard(clarifiedText)}
-                >
-                  <Feather name="copy" size={18} style={styles.actionIcon} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : null}
-
-          {isProcessing && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.accentColor} />
-            </View>
-          )}
-          
-          {/* Decorative wave background */}
-          <Image
-            source={require('../../assets/images/bg.png')}
-            style={styles.waveBackground}
-            resizeMode="cover"
-          />
-        </ScrollView>
+    <ImageBackground 
+      source={require('../../assets/images/bg.png')} 
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <SafeAreaView style={styles.contentContainer} edges={['bottom', 'left', 'right']}>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         
-        {/* Bottom controls area */}
-        <View style={styles.controlsContainer}>
-          <View style={styles.micButtonContainer}>
-            <TouchableOpacity
-              style={styles.micButton}
-              onPress={toggleRecording}
-              activeOpacity={0.8}
-              disabled={isProcessing}
+        <View style={styles.content}>
+          <ScrollView 
+            style={{flex: 1}}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Ozzy title and logo - Now bigger, centered, and clickable */}
+            <TouchableOpacity 
+              style={styles.titleContainer}
+              onPress={() => navigation.navigate('Home')}
             >
-              {isRecording ? (
-                // @ts-ignore - ignore LinearGradient props error
-                <LinearGradient
-                  colors={[theme.dangerColor, '#FF7A7A']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.micButtonContent}
-                >
-                  <Feather name="mic-off" size={24} color="white" />
-                </LinearGradient>
-              ) : (
-                // @ts-ignore - ignore LinearGradient props error
-                <LinearGradient
-                  colors={[theme.accentColor, '#8A4FFF']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.micButtonContent}
-                >
-                  <Feather name="mic" size={24} color="white" />
-                </LinearGradient>
-              )}
+              <Image 
+                source={require('../../assets/images/Ozzy.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
-            <Text style={styles.statusText}>
-              {isRecording 
-                ? "Listening..." 
-                : isProcessing 
-                  ? "Processing..." 
-                  : "Tap the microphone to start speaking"}
-            </Text>
-          </View>
+            
+            {transcription ? (
+              <View style={[styles.messageContainer, styles.userMessageContainer]}>
+                <Text style={styles.messageLabel}>You</Text>
+                <Text style={styles.messageText}>{transcription}</Text>
+              </View>
+            ) : null}
+
+            {clarifiedText ? (
+              <View style={[styles.messageContainer, styles.assistantMessageContainer]}>
+                <Text style={styles.messageLabel}>Ozzy</Text>
+                <Text style={styles.messageText}>{clarifiedText}</Text>
+                <View style={styles.actionsContainer}>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => speakText(clarifiedText)}
+                  >
+                    <Feather name="volume-2" size={18} style={styles.actionIcon} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => copyToClipboard(clarifiedText)}
+                  >
+                    <Feather name="copy" size={18} style={styles.actionIcon} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : null}
+
+            {isProcessing && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.accentColor} />
+              </View>
+            )}
+          </ScrollView>
           
-          <View style={styles.settingsContainer}>
-            <Text style={styles.settingLabel}>Auto-speak responses</Text>
-            <Switch
-              value={autoSpeak}
-              onValueChange={setAutoSpeak}
-              trackColor={{ false: isDark ? theme.mutedBackground : '#E2E8F0', true: theme.accentColor }}
-              thumbColor={"#FFFFFF"}
-              ios_backgroundColor={isDark ? theme.mutedBackground : '#E2E8F0'}
-            />
+          {/* Bottom controls area */}
+          <View style={styles.controlsContainer}>
+            <View style={styles.micButtonContainer}>
+              <TouchableOpacity
+                style={styles.micButton}
+                onPress={toggleRecording}
+                activeOpacity={0.8}
+                disabled={isProcessing}
+              >
+                {isRecording ? (
+                  <LinearGradient
+                    colors={[theme.dangerColor, '#FF7A7A']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.micButtonContent}
+                  >
+                    <Feather name="mic-off" size={24} color="white" />
+                  </LinearGradient>
+                ) : (
+                  <LinearGradient
+                    colors={[theme.accentColor, '#8A4FFF']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.micButtonContent}
+                  >
+                    <Feather name="mic" size={24} color="white" />
+                  </LinearGradient>
+                )}
+              </TouchableOpacity>
+              <Text style={styles.statusText}>
+                {isRecording 
+                  ? "Listening..." 
+                  : isProcessing 
+                    ? "Processing..." 
+                    : "Tap the microphone to start speaking"}
+              </Text>
+            </View>
+            
+            <View style={styles.settingsContainer}>
+              <Text style={styles.settingLabel}>Auto-speak responses</Text>
+              <Switch
+                value={autoSpeak}
+                onValueChange={setAutoSpeak}
+                trackColor={{ false: isDark ? theme.mutedBackground : '#E2E8F0', true: theme.accentColor }}
+                thumbColor={"#FFFFFF"}
+                ios_backgroundColor={isDark ? theme.mutedBackground : '#E2E8F0'}
+              />
+            </View>
           </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }

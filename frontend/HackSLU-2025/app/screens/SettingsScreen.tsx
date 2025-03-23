@@ -14,7 +14,7 @@ const LANGUAGES = [
     // Add more languages as needed
   ];
 
-const SettingsScreen = () => {
+const SettingsScreen = ({ navigation }) => {
     
   const { theme, isDark, toggleTheme } = useTheme();
   const [selectedLanguage, setSelectedLanguage] = useState('en');
@@ -48,15 +48,17 @@ const SettingsScreen = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <ScrollView style={styles.scrollView}>
-        {/* Ozzy title and logo */}
-        <View style={styles.titleContainer}>
-          <Text style={[styles.title, { color: theme.textColor }]}>Ozzy</Text>
+        {/* Ozzy title and logo - Now centered, bigger, and clickable */}
+        <TouchableOpacity 
+          style={styles.titleContainer}
+          onPress={() => navigation.navigate('Home')}
+        >
           <Image 
             source={require('../../assets/images/Ozzy.png')} 
             style={styles.logo}
             resizeMode="contain"
           />
-        </View>
+        </TouchableOpacity>
         
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.secondaryTextColor }]}>Appearance</Text>
@@ -305,21 +307,23 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     fontSize: 14,
   },
+  // Updated title container for the new design
   titleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 30,
     marginTop: 20,
+    width: '100%',
   },
   title: {
     fontSize: 34,
     fontWeight: 'bold',
+    marginTop: 10, // Space between logo and text
   },
+  // Increased logo size
   logo: {
-    width: 50,
-    height: 50,
-    marginLeft: 12,
+    width: 150, // Increased from 120
+    height: 150, // Increased from 120
   },
   modalContainer: {
     flex: 1,
@@ -381,9 +385,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  // Increased about logo size
   aboutLogo: {
-    width: 100,
-    height: 100,
+    width: 150, // Increased from 120
+    height: 150, // Increased from 120
   },
   aboutText: {
     fontSize: 15,
@@ -396,4 +401,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SettingsScreen; 
+export default SettingsScreen;
