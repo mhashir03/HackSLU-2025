@@ -6,7 +6,7 @@ Ozzy is a mobile application designed to help users with speech difficulties com
 
 **Website:** [www.useozzy.com](https://www.useozzy.com)
 
-![Ozzy App](assets/app-preview.png)
+Coming Soon on App Stores!
 
 ## 🏆 HackSLU 2025 Submission
 
