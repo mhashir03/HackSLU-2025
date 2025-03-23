@@ -1,6 +1,9 @@
 # Node modules
 node_modules/
 
+.json
+.env
+
 # Lock files
 package-lock.json
 yarn.lock
