@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../context/ThemeContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { recognizeSpeech } from '../../api/speechApi'
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -17,6 +17,7 @@ interface Language {
 // @ts-ignore - ignore navigation type for now
 export default function SpeechScreen({ navigation }) {
   const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcription, setTranscription] = useState("");
@@ -282,7 +283,7 @@ export default function SpeechScreen({ navigation }) {
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 30,
-      marginTop: 20,
+      marginTop: 20 + insets.top, // Add top inset to ensure content is below the notch
     },
     title: {
       fontSize: 34,
@@ -297,7 +298,7 @@ export default function SpeechScreen({ navigation }) {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       
       <View style={styles.content}>
