@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // @ts-ignore - ignoring navigation type for now
 export default function HomeScreen({ navigation }) {
@@ -13,45 +14,64 @@ export default function HomeScreen({ navigation }) {
       flex: 1,
       backgroundColor: theme.backgroundColor,
     },
+    scrollView: {
+      flex: 1,
+    },
     content: {
       flex: 1,
-      padding: 16,
+      padding: 20,
       maxWidth: 500,
       width: '100%',
       alignSelf: 'center',
     },
     header: {
       alignItems: 'center',
-      marginTop: 32,
-      marginBottom: 32,
+      marginTop: 20,
+      marginBottom: 40,
+    },
+    logo: {
+      width: 300,
+      height: 300,
+      marginTop: 1,
+      marginBottom: 1,
     },
     title: {
-      fontSize: 28,
+      fontSize: 32,
       fontWeight: 'bold',
       color: theme.textColor,
+      letterSpacing: 1,
     },
     subtitle: {
       fontSize: 16,
       color: theme.secondaryTextColor,
       marginTop: 8,
+      letterSpacing: 0.5,
     },
     buttonContainer: {
       marginVertical: 32,
       gap: 24,
     },
     primaryButton: {
-      backgroundColor: theme.accentColor,
-      borderRadius: 12,
-      height: 80,
+      borderRadius: 16,
+      height: 90,
+      overflow: 'hidden',
+      shadowColor: theme.accentColor,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
+    },
+    primaryButtonContent: {
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       flexDirection: 'row',
     },
     primaryButtonText: {
       color: 'white',
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: '600',
-      marginLeft: 8,
+      marginLeft: 12,
     },
     secondaryButtonsRow: {
       flexDirection: 'row',
@@ -59,98 +79,169 @@ export default function HomeScreen({ navigation }) {
     },
     secondaryButton: {
       flex: 1,
-      height: 64,
+      height: 80,
       backgroundColor: theme.mutedBackground,
-      borderRadius: 12,
+      borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
     },
     secondaryButtonText: {
       color: theme.textColor,
-      marginTop: 4,
-      fontSize: 14,
+      marginTop: 8,
+      fontSize: 16,
+      fontWeight: '500',
     },
     tipsContainer: {
       backgroundColor: theme.mutedBackground,
-      borderRadius: 12,
-      padding: 16,
+      borderRadius: 20,
+      padding: 24,
       marginTop: 'auto',
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    tipsHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
       marginBottom: 16,
     },
+    tipsIcon: {
+      marginRight: 10,
+    },
     tipsTitle: {
-      fontWeight: '600',
-      marginBottom: 8,
+      fontWeight: '700',
+      fontSize: 18,
       color: theme.textColor,
     },
     tipsList: {
-      gap: 8,
+      gap: 12,
     },
     tipItem: {
       flexDirection: 'row',
       alignItems: 'flex-start',
+      paddingVertical: 4,
     },
     tipText: {
-      fontSize: 14,
+      fontSize: 15,
       color: theme.textColor,
       flex: 1,
+      lineHeight: 22,
     },
     tipBullet: {
-      marginRight: 8,
-      color: theme.textColor,
+      marginRight: 10,
+      color: theme.accentColor,
+      fontSize: 18,
     },
+    waveBackground: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 200,
+      opacity: 0.1,
+      zIndex: -1,
+    }
   });
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content} contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Ozzy</Text>
-          <Text style={styles.subtitle}>AI-powered speech assistant</Text>
-        </View>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        decelerationRate="normal"
+        scrollEventThrottle={16}
+      >
+        <View style={styles.content}>
+          <View style={styles.header}>
+            {/* Larger logo */}
+            <Image 
+              source={require('../../assets/images/Ozzy.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.title}>Ozzy</Text>
+            <Text style={styles.subtitle}>AI-powered speech assistant</Text>
+          </View>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.primaryButton}
-            onPress={() => navigation.navigate('Speech')}
-            activeOpacity={0.8}
-          >
-            <Feather name="mic" size={24} color="white" />
-            <Text style={styles.primaryButtonText}>Start Speaking</Text>
-          </TouchableOpacity>
-
-          <View style={styles.secondaryButtonsRow}>
+          <View style={styles.buttonContainer}>
             <TouchableOpacity 
-              style={[styles.secondaryButton, { flex: 1 }]}
-              onPress={() => navigation.navigate('Settings')}
+              style={styles.primaryButton}
+              onPress={() => navigation.navigate('Speech')}
               activeOpacity={0.8}
             >
-              <Feather name="settings" size={24} color={theme.textColor} />
-              <Text style={styles.secondaryButtonText}>Settings</Text>
+              <LinearGradient
+                colors={[theme.accentColor, '#8A4FFF']} 
+                start={{ x: 0, y: 0 }} 
+                end={{ x: 1, y: 0 }} 
+                style={styles.primaryButtonContent}
+              >
+                <Feather name="mic" size={28} color="white" />
+                <Text style={styles.primaryButtonText}>Start Speaking</Text>
+              </LinearGradient>
             </TouchableOpacity>
-          </View>
-        </View>
 
-        <View style={styles.tipsContainer}>
-          <Text style={styles.tipsTitle}>Quick Tips</Text>
-          <View style={styles.tipsList}>
-            <View style={styles.tipItem}>
-              <Text style={styles.tipBullet}>•</Text>
-              <Text style={styles.tipText}>Tap the microphone button to start speaking</Text>
-            </View>
-            <View style={styles.tipItem}>
-              <Text style={styles.tipBullet}>•</Text>
-              <Text style={styles.tipText}>Speak at your natural pace</Text>
-            </View>
-            <View style={styles.tipItem}>
-              <Text style={styles.tipBullet}>•</Text>
-              <Text style={styles.tipText}>The AI will transcribe and clarify your speech</Text>
-            </View>
-            <View style={styles.tipItem}>
-              <Text style={styles.tipBullet}>•</Text>
-              <Text style={styles.tipText}>Adjust settings for your preferences</Text>
+            <View style={styles.secondaryButtonsRow}>
+              <TouchableOpacity 
+                style={styles.secondaryButton}
+                onPress={() => navigation.navigate('Settings')}
+                activeOpacity={0.8}
+              >
+                <Feather name="settings" size={28} color={theme.accentColor} />
+                <Text style={styles.secondaryButtonText}>Settings</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.secondaryButton}
+                onPress={() => navigation.navigate('History')}
+                activeOpacity={0.8}
+              >
+                <Feather name="clock" size={28} color={theme.accentColor} />
+                <Text style={styles.secondaryButtonText}>History</Text>
+              </TouchableOpacity>
             </View>
           </View>
+
+          <View style={styles.tipsContainer}>
+            <View style={styles.tipsHeader}>
+              <Feather name="info" size={20} color={theme.accentColor} style={styles.tipsIcon} />
+              <Text style={styles.tipsTitle}>Quick Tips</Text>
+            </View>
+            <View style={styles.tipsList}>
+              <View style={styles.tipItem}>
+                <Text style={styles.tipBullet}>•</Text>
+                <Text style={styles.tipText}>Tap the microphone button to start speaking</Text>
+              </View>
+              <View style={styles.tipItem}>
+                <Text style={styles.tipBullet}>•</Text>
+                <Text style={styles.tipText}>Speak at your natural pace for best recognition</Text>
+              </View>
+              <View style={styles.tipItem}>
+                <Text style={styles.tipBullet}>•</Text>
+                <Text style={styles.tipText}>The AI will transcribe and clarify your speech in real-time</Text>
+              </View>
+              <View style={styles.tipItem}>
+                <Text style={styles.tipBullet}>•</Text>
+                <Text style={styles.tipText}>Adjust settings for your voice preferences</Text>
+              </View>
+            </View>
+          </View>
+          
+          {/* Decorative wave background */}
+          <Image
+            source={require('../../assets/images/bg.png')}
+            style={styles.waveBackground}
+            resizeMode="cover"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
