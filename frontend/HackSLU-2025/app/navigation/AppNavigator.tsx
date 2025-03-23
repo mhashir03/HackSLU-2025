@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { Platform, Dimensions } from 'react-native';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -50,11 +51,13 @@ const SettingsStack = () => {
 
 export default function AppNavigator() {
   const { theme } = useTheme();
+  const { width } = Dimensions.get('window');
+  const isMobile = width < 768;
   
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ focused, color }) => {
           let iconName;
 
           if (route.name === 'Home') {
@@ -65,17 +68,31 @@ export default function AppNavigator() {
             iconName = 'settings';
           }
 
-          return <Feather name={iconName} size={size} color={color} />;
+          return <Feather name={iconName} size={isMobile ? 28 : 24} color={color} />;
         },
         tabBarActiveTintColor: theme.accentColor,
         tabBarInactiveTintColor: theme.secondaryTextColor,
         tabBarStyle: {
-          height: 60,
-          paddingBottom: 5,
+          height: isMobile ? 90 : 70,
+          paddingBottom: isMobile ? 15 : 10,
+          paddingTop: isMobile ? 10 : 5,
           backgroundColor: theme.backgroundColor,
+          borderTopWidth: 1,
+          borderTopColor: theme.borderColor,
+          elevation: 8,
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          shadowColor: '#000',
+          shadowOffset: { height: -2, width: 0 },
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: isMobile ? 14 : 12,
+          fontWeight: '500',
+          marginTop: isMobile ? 2 : 0,
+          paddingBottom: isMobile ? 5 : 3,
+        },
+        tabBarIconStyle: {
+          marginTop: isMobile ? 5 : 3,
         },
         headerShown: false,
       })}
